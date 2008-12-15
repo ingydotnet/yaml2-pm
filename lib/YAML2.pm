@@ -5,7 +5,7 @@ use strict;
 use warnings;           # XXX remove this for 5.005003
 use YAML2::Base -base;
 
-$YAML2::VERSION = '0.10';
+$YAML2::VERSION = '0.01';
 @YAML2::EXPORT = qw(yaml Dump Load);
 @YAML2::EXPORT_OK = qw(DumpFile LoadFile freeze thaw);
 
