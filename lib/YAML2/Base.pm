@@ -53,51 +53,21 @@ sub new {
     return $self;
 }
 
-sub dump_object {
-    my $class = shift;
-    my $args = '(';
-    while (my ($k, $v) = splice(@_, 0, 2)) {
-        last unless $k;
-        if (not defined $v) {
-            $v = '~';
-        }
-        elsif (ref $v) {
-            $v = '@';
-        }
-        elsif (length $v > 15) {
-            $v = substr $v, 0, 15;
-        }
-        $args .= "${k}:$v,";
-    }
-    $args =~ s/,$//;
-    $args .= ')';
-#     printf "\t\t\t\t\t\t\t%s :\n%26s %s\n", (caller(2))[3], $class, $args;
-    printf "%26s %s\n", $class, $args;
-}
-
 sub init {
     my $self = shift;
     while (my ($property, $value) = splice(@_, 0, 2)) {
         unless ($self->can($property)) {
             my $class = ref $self;
+            require Carp;
             Carp::confess("Class '$class' has no property '$property'");
         }
         $self->$property($value);
     }
 }
 
-sub create {
+sub croak {
     my $self = shift;
-    my $object_class = (shift) . '_class';
-    my $module_name = $self->$object_class;
-    eval "require $module_name";
-    $self->die("Error in require $module_name - $@")
-        if $@ and "$@" !~ /Can't locate/;
-    return $module_name->new;
-}
-
-sub die {
-    my $self = shift;
+    require Carp;
     Carp::confess(@_);
 }
 
@@ -211,11 +181,13 @@ sub field {
 
 sub _dump {
     no warnings 'once';
+    require YAML::XS;
     return YAML::XS::Dump(@_);
 }
 
 sub XXX {
-    CORE::die _dump(@_);
+    require Carp;
+    Carp::confess(_dump(@_));
 }
 
 sub WWW {
@@ -224,6 +196,7 @@ sub WWW {
 }
 
 sub assert {
+    require Carp;
     Carp::confess("assert failed") unless $_[0];
 }
 
@@ -242,6 +215,8 @@ sub EXPORT_BASE {
 }
 
 1;
+
+=encoding utf8
 
 =head1 NAME
 

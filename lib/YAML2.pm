@@ -5,89 +5,134 @@ use strict;
 use warnings;           # XXX remove this for 5.005003
 use YAML2::Base -base;
 
-$YAML2::VERSION = '0.01';
-@YAML2::EXPORT = qw(Dump Load);
+$YAML2::VERSION = '0.10';
+@YAML2::EXPORT = qw(yaml Dump Load);
 @YAML2::EXPORT_OK = qw(DumpFile LoadFile freeze thaw);
-%YAML2::pkg_to_impl = ();
+
+$YAML2::_package_to_implementation = {};
+$YAML2::_implementation_list = [qw(
+    YAML::XS
+    YAML::Perl
+    YAML::Syck
+    YAML::Old
+    YAML::Tiny
+)];
 
 field implementation => -chain;
-field bind =>
+field binding =>
     -init => '$self->new_binding_object';
 
 sub croak { require Carp; Carp::croak(@_) }
 
-# use YAML;
-# use YAML-XS;
-# use YAML-XS,-Perl;
-# use YAML-XS => 'yaml=yamlxs';
-# use YAML ':all';
-# use YAML qw(Dump Load DumpFile LoadFile yaml);
-
-use XXX;
-my $use_caller;
+my $use_package;
 sub import {
-    my $package = shift;
-    $use_caller = caller;
-    my @implementations = ();
-    while (@_) {
-        last unless $_[0] =~ /^-[A-Z]/;
-        my $suffix = shift;
-        $suffix =~ s/-/::/g;
-        push @implementations, "YAML$suffix";
-    }
-    @implementations = qw(
-        YAML::XS
-        YAML::Perl
-        YAML::Syck
-        YAML::Old
-        YAML::Tiny
-    ) if not @implementations;
-    if (not(@_) or (grep /^(yaml|:all)$/, @_)) {
-        $package->export_yaml(\@implementations);
-    }
-    @_ = ($package, grep not(/^!?yaml$/), @_);
-    goto &YAML2::Base::import;
+    my $class = shift;
+    $use_package = caller;
+
+    my $implementations;
+    ($implementations, @_) = $class->grep_implemntation_list(@_);
+
+    my $implementation = $class->load_implementation($implementations);
+
+    no warnings 'once', 'redefine';
+    local (*Dump, *Load, *DumpFile, *LoadFile, *yaml) =
+        $class->generate_exportable_subroutines(@_);
+
+    # gather up the possible implementations
+    # ask YAML::Any which implementation to use
+    # ask YAML::Any for the exportables and localize them
+    # localize 'yaml' with proper implementation
+    # call Exporter setting $Exporter::ExportLevel = 1
+
+    local $Exporter::ExportLevel = 1;
+    &Exporter::import($class, @_);
 }
 
-sub export_yaml {
+sub get_binding {
     my $package = shift;
-    my $implementations = shift;
-    for my $module (@$implementations) {
-        if ($package->load_implementation($module)) {
-            no strict 'refs';
-            *{"${package}::yaml"} = sub {
-                return 'YAML'->new()->implementation($module);
-            };
-            return;
-        }
-    }
-    my $msg = "Failed to load YAML2 implementation module. Could not find a binding module for" .
-        ((@$implementations > 1) ? " one of: " : ": ") .
-        join ', ', @$implementations;
-    croak($msg)
+    'YAML::Perl';
+}
+
+sub new_binding_object {
+    my $self = shift;
+    require YAML2::Bind::Perl;
+    return YAML2::Bind::Perl->new();
+}
+
+{
+    no strict 'refs';
+    sub Dump { &{get_binding(scalar caller) . "::Dump"}(@_) }
+    sub Load { &{get_binding(scalar caller) . "::Load"}(@_) }
+    sub DumpFile { &{get_binding(scalar caller) . "::DumpFile"}(@_) }
+    sub LoadFile { &{get_binding(scalar caller) . "::LoadFile"}(@_) }
+}
+
+sub yaml { die }
+
+sub dump {
+    my $self = shift;
+    return $self->binding->dump(@_);
+}
+
+sub load {
+    my $self = shift;
+    return $self->binding->load(@_);
+}
+
+sub emit {
+    my $self = shift;
+    return $self->binding->emit(@_);
+}
+
+sub parse {
+    my $self = shift;
+    return $self->binding->parse(@_);
 }
 
 sub _get_binding {
     my $package = shift;
-    my $implementation = $YAML2::pkg_to_impl{$package}
+    my $implementation = $YAML2::_package_to_implementation->{$package}
       or croak "No YAML2 implmentation module found for package '$package'. Maybe you forgot to 'use YAML2' in that package.";
     return $implementation->new;
 }
 
-sub Dump {
-    return _get_binding(scalar caller)->dump(@_);
+sub grep_implemntation_list {
+    my $class = shift;
+
+    my $implementations = [];
+    while (@_) {
+        last unless $_[0] =~ /^-[A-Z]/;
+        my $suffix = shift;
+        $suffix =~ s/-/::/g;
+        push @$implementations, "YAML$suffix";
+    }
+    @$implementations = $YAML2::_implementation_list
+        unless @$implementations;
+
+    return ($implementations, @_);
 }
 
 sub load_implementation {
-    my $package = shift;
-    my $implementation = shift;
-    my $binding = $implementation;
-    $binding =~ s/^YAML::(.*)$/YAML2::Bind::$1/
-        or die "Error loading YAML2 binding module for '$implementation'";
-    eval "use $binding; \$YAML2::pkg_to_impl{$package} = '$implementation'";
-    return 0 if $@;
-    $YAML2::pkg_to_impl{$use_caller} = $binding;
-    return 1;
+    my $class = shift;
+    my $implementations = shift;
+
+    for my $implementation (@$implementations) {
+        my $path = "$implementation.pm";
+        $path =~ s!::!/!g;
+        if ($INC{$path} or eval "require $implementation; 1") {
+            return $implementation;
+        }
+    }
+    return;
+}
+
+sub generate_exportable_subroutines {
+    my $class = shift;
+
+    my $yaml = sub {
+        return __PACKAGE__->new(@_);
+    };
+    return sub{}, sub{}, sub{}, sub{}, $yaml;
 }
 
 1;
@@ -95,6 +140,10 @@ sub load_implementation {
 =head1 NAME
 
 YAML2 - YAML Ain't Markup Language
+
+=head1 WARNING
+
+This is a very early version, and should simply not be used.
 
 =head1 NOTE
 
@@ -140,7 +189,9 @@ C<s/YAML2/YAML/g> and remove this NOTE section from the documentation.
 
 =head1 DESCRIPTION
 
-YAML2.pm is the front end module API module for all of the various backend YAML implementation modules. The current YAML implementation modules are:
+YAML2.pm is the front end module API module for all of the various
+backend YAML implementation modules. The current YAML implementation
+modules are:
 
     - YAML::Old - The old, "classic", woefully inadequate YAML.pm
     - YAML::XS - The newer very fast and very correct YAML module
@@ -168,8 +219,6 @@ appropriate error msg.
 
 =head1 Dump/Load API
 
-=head1 
-
 =head1 AUTHOR
 
 Ingy döt Net <ingy@cpan.org>
@@ -184,3 +233,47 @@ under the same terms as Perl itself.
 See http://www.perl.com/perl/misc/Artistic.html
 
 =cut
+
+__END__
+# sub export_yaml {
+#     my $implementations = ();
+#     for my $module (@$implementations) {
+#         if ($package->load_implementation($module)) {
+#             no strict 'refs';
+#             *{"${package}::yaml"} = sub {
+#                 return 'YAML'->new()->implementation($module);
+#             };
+#             return;
+#         }
+#     }
+#     my $msg = "Failed to load YAML2 implementation module. Could not find a binding module for" .
+#         ((@$implementations > 1) ? " one of: " : ": ") .
+#         join ', ', @$implementations;
+#     croak($msg)
+# }
+
+
+
+#     my $implementation = shift;
+#     my $binding = $implementation;
+#     $binding =~ s/^YAML::(.*)$/YAML2::Bind::$1/
+#         or die "Error loading YAML2 binding module for '$implementation'";
+#     eval "use $binding; \$YAML2::_package_to_implementation->{$package} = '$implementation'";
+#     return 0 if $@;
+#     $YAML2::_package_to_implementation->{$use_package} = $binding;
+#     return 1;
+
+use YAML;
+yaml(
+    implementation =>
+    option1 =>
+)
+->loader
+  ->load
+  ->next
+->dumper
+  ->dump
+->stream
+->open
+->close
+->{binding}
