@@ -10,7 +10,7 @@ sub emit {
     my $emitter = YAML::Perl::Emitter->new();
     $emitter->open();
     $emitter->emit(@_);
-    return $emitter->stream->string;
+    return $emitter->writer->stream->string;
 }
 
 sub parse {

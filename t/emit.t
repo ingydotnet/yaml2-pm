@@ -1,15 +1,17 @@
 use lib '../yaml-perl-pm/lib';
 use t::TestYAML;
 
+no_diff();
+
 plan((eval {require YAML::Perl; 1})
-    ? (tests => 2)
+    ? (tests => 1)
     : (skip_all => "requires YAML::Perl")
 );
 
 use YAML-Perl;
 require YAML::Perl::Events;
 
-my $yaml = "42: 43\n";
+my $yaml = "---\n42: 43\n";
 my @events = map {
     chomp;
     my ($name, $value) = split;
@@ -20,12 +22,6 @@ my @events = map {
     );
 } <DATA>;
 
-my @events1 = @events;
-my $iterator = sub {
-    return @events1 ? shift(@events1) : ();
-};
-
-is yaml->emit($iterator), $yaml, 'yaml->emit works with iterator';
 is yaml->emit(@events), $yaml, 'yaml->emit works with list';
 
 __DATA__
