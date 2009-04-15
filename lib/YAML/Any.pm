@@ -1,12 +1,12 @@
-package YAML2::Any;
+package YAML::Any;
 
 use 5.005003;
 use strict;
 use base 'Exporter';
 
-@YAML2::Any::EXPORT = qw(Dump Load);
-@YAML2::Any::EXPORT_OK = qw(DumpFile LoadFile);
-$YAML2::Any::VERSION = '0.67';
+@YAML::Any::EXPORT = qw(Dump Load);
+@YAML::Any::EXPORT_OK = qw(DumpFile LoadFile);
+$YAML::Any::VERSION = '0.67';
 
 my @dump_options = qw(
     UseCode
@@ -39,66 +39,66 @@ my @implementations = qw(
 );
 
 sub import {
-    YAML2::Any->implementation;
+    YAML::Any->implementation;
     goto &Exporter::import;
 }
 
 sub Dump {
     no strict 'refs';
-    my $implementation = YAML2::Any->implementation;
+    my $implementation = YAML::Any->implementation;
     for my $option (@dump_options) {
         my $var = "$implementation\::$option";
         my $value = $$var;
         local $$var;
-        $$var = defined $value ? $value : ${"YAML2::$option"};
+        $$var = defined $value ? $value : ${"YAML::$option"};
     }
     return &{"$implementation\::Dump"}(@_);
 }
 
 sub DumpFile {
     no strict 'refs';
-    my $implementation = YAML2::Any->implementation;
+    my $implementation = YAML::Any->implementation;
     for my $option (@dump_options) {
         my $var = "$implementation\::$option";
         my $value = $$var;
         local $$var;
-        $$var = defined $value ? $value : ${"YAML2::$option"};
+        $$var = defined $value ? $value : ${"YAML::$option"};
     }
     return &{"$implementation\::DumpFile"}(@_);
 }
 
 sub Load {
     no strict 'refs';
-    my $implementation = YAML2::Any->implementation;
+    my $implementation = YAML::Any->implementation;
     for my $option (@load_options) {
         my $var = "$implementation\::$option";
         my $value = $$var;
         local $$var;
-        $$var = defined $value ? $value : ${"YAML2::$option"};
+        $$var = defined $value ? $value : ${"YAML::$option"};
     }
     return &{"$implementation\::Load"}(@_);
 }
 
 sub LoadFile {
     no strict 'refs';
-    my $implementation = YAML2::Any->implementation;
+    my $implementation = YAML::Any->implementation;
     for my $option (@load_options) {
         my $var = "$implementation\::$option";
         my $value = $$var;
         local $$var;
-        $$var = defined $value ? $value : ${"YAML2::$option"};
+        $$var = defined $value ? $value : ${"YAML::$option"};
     }
     return &{"$implementation\::LoadFile"}(@_);
 }
 
 sub order {
-    return @YAML2::Any::_TEST_ORDER
-        if defined @YAML2::Any::_TEST_ORDER;
+    return @YAML::Any::_TEST_ORDER
+        if defined @YAML::Any::_TEST_ORDER;
     return @implementations;
 }
 
 sub implementation {
-    my @order = YAML2::Any->order;
+    my @order = YAML::Any->order;
     for my $module (@order) {
         my $path = $module;
         $path =~ s/::/\//g;
@@ -106,7 +106,7 @@ sub implementation {
         return $module if exists $INC{$path};
         eval "require $module; 1" and return $module;
     }
-    croak("YAML2::Any couldn't find any of these YAML implementations: @order");
+    croak("YAML::Any couldn't find any of these YAML implementations: @order");
 }
 
 sub croak {
@@ -120,12 +120,12 @@ sub croak {
 
 =head1 NAME
 
-YAML2::Any - Pick a YAML implementation and use it.
+YAML::Any - Pick a YAML implementation and use it.
 
 =head1 SYNOPSIS
 
-    use YAML2::Any;
-    $YAML2::Indent = 3;
+    use YAML::Any;
+    $YAML::Indent = 3;
     my $yaml = Dump(@objects);
 
 =head1 DESCRIPTION
@@ -135,7 +135,7 @@ This module selects the best one available and uses it.
 
 =head1 ORDER
 
-Currently, YAML2::Any will choose the first one of these YAML
+Currently, YAML::Any will choose the first one of these YAML
 implementations that is installed on your system:
 
     YAML::XS
@@ -148,14 +148,14 @@ implementations that is installed on your system:
 
 If you specify an option like:
 
-    $YAML2::Indent = 4;
+    $YAML::Indent = 4;
 
-And YAML2::Any is using YAML::XS, it will use the proper variable:
+And YAML::Any is using YAML::XS, it will use the proper variable:
 $YAML::XS::Indent.
 
 =head1 SUBROUTINES
 
-Like all the YAML modules that YAML2::Any uses, the following subroutines
+Like all the YAML modules that YAML::Any uses, the following subroutines
 are exported by default:
 
     Dump
@@ -168,19 +168,19 @@ and the following subroutines are exportable by request:
 
 =head1 METHODS
 
-YAML2::Any provides the following class methods.
+YAML::Any provides the following class methods.
 
 =over
 
-=item YAML2::Any->order;
+=item YAML::Any->order;
 
 This method returns a list of the current possible implementations that
-YAML2::Any will search for.
+YAML::Any will search for.
 
-=item YAML2::Any->implementation;
+=item YAML::Any->implementation;
 
-This method returns the implementation the YAML2::Any will use. This
-result is obtained by finding the first member of YAML2::Any->order that
+This method returns the implementation the YAML::Any will use. This
+result is obtained by finding the first member of YAML::Any->order that
 is either already loaded in C<%INC> or that can be loaded using
 C<require>. If no implementation is found, an error will be thrown.
 

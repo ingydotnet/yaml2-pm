@@ -1,6 +1,6 @@
-package YAML2::Bind;
+package YAML::Bind;
 use strict;
-use YAML2::Base -base;
+use YAML::Base -base;
 
 sub init {
     my $self = shift;

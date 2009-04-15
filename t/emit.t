@@ -6,7 +6,7 @@ plan((eval {require YAML::Perl; 1})
     : (skip_all => "requires YAML::Perl")
 );
 
-use YAML2-Perl;
+use YAML-Perl;
 require YAML::Perl::Events;
 
 my $yaml = "42: 43\n";

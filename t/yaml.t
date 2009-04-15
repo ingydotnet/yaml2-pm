@@ -1,6 +1,6 @@
 use t::TestYAML 'no_plan'; # tests => 5;
 use t::YAMLFaker qw(YAML::Perl YAML::Old);
-use YAML2;
+use YAML;
 
 ok defined(&yaml), 'yaml is exported';
 

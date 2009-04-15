@@ -1,7 +1,16 @@
-package YAML2::Base;
+package YAML::Base;
 use strict;
 use warnings;
 
+{
+    no warnings 'once';
+    $YAML::Base::die = 'die';
+}
+
+# Support:
+#   use YAML::Module -base;
+# or just:
+#   use YAML::Module qw(import list);
 sub import {
     my ($class, $flag) = @_;
     my ($package, $module) = caller(0);
@@ -26,6 +35,7 @@ sub import_base {
     $class->export_base($package);
 }
 
+# Fake out %INC if this is an inline class (not a class with a module).
 sub import_fake {
     my ($class, $package, $module) = @_;
     my $inc_module = $package . '.pm';
@@ -34,6 +44,7 @@ sub import_fake {
     $INC{$inc_module} = $module;
 }
 
+# Export the things that all YAML subclasses need.
 sub export_base {
     my ($source, $target) = @_;
     no strict 'refs';
@@ -65,12 +76,7 @@ sub init {
     }
 }
 
-sub croak {
-    my $self = shift;
-    require Carp;
-    Carp::confess(@_);
-}
-
+# BEGIN - inline version of Class::Field
 my %code = (
     sub_start =>
       "sub {\n",
@@ -178,6 +184,7 @@ sub field {
     *{"${package}::$field"} = $sub;
     return $code if defined wantarray;
 }
+# END - inline version of Class::Field
 
 sub _dump {
     no warnings 'once';
@@ -201,16 +208,30 @@ sub assert {
 }
 
 sub throw {
-    CORE::die @_;
+    my $thrower =
+        ($YAML::Base::throw eq 'die')
+            ? \ &CORE::die :
+        ($YAML::Base::throw eq 'croak')
+            ? do { require Carp; \ &Carp::croak } :
+        ($YAML::Base::throw eq 'confess')
+            ? do { require Carp; \ &Carp::confess } :
+        \ &CORE::die;
+    &$thrower(@_);
+}
+
+sub croak {
+    my $self = shift;
+    require Carp;
+    Carp::confess(@_);
 }
 
 sub EXPORT_BASE {
     return qw(
-        YAML2::Base::field
-        YAML2::Base::XXX
-        YAML2::Base::WWW
-        YAML2::Base::assert
-        YAML2::Base::throw
+        YAML::Base::field
+        YAML::Base::XXX
+        YAML::Base::WWW
+        YAML::Base::assert
+        YAML::Base::throw
     );
 }
 
@@ -220,29 +241,28 @@ sub EXPORT_BASE {
 
 =head1 NAME
 
-YAML2::Base - Base Class of all YAML Components
+YAML::Base - Base Class of all YAML Components
 
 =head1 SYNOPSIS
 
     package YAML::Foo;
     use strict;
     use warnings;
-    use YAML2::Base -base;
+    use YAML::Base -base;
 
     field 'foo';
     field 'bar' => 'blah';
 
 =head1 DESCRIPTION
 
-The YAML2 toolset is made up of a bunch of modules that are object
-oriented. All these modules inherit from YAML2::Base, directly or
-eventually.
+The YAML toolset is made up of a bunch of modules that are object
+oriented. All these modules inherit from YAML::Base.
 
-In the spirit of Spiffyness (but without source filtering or
-dependencies) YAML2::Base provides the C<field> accessor generator to all
-its subclasses. It also provides XXX for debugging with YAML::XS.
+This base class exports the C<field> accessor generator, and the
+C<throw> and C<assert> functions to all its subclasses. It also provides
+C<XXX> and C<WWW> for debugging with YAML::XS.
 
-Additionally YAML2::Base provides default C<new> and C<init> class
+Additionally, YAML::Base provides default C<new> and C<init> class
 methods for object construction.
 
 =head1 AUTHOR
@@ -251,7 +271,7 @@ Ingy döt Net <ingy@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2008. Ingy döt Net. All rights reserved.
+Copyright (c) 2008, 2009. Ingy döt Net.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

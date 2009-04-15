@@ -1,6 +1,6 @@
-package YAML2::Bind::XS;
+package YAML::Bind::XS;
 use strict;
-use YAML2::Bind -base;
+use YAML::Bind -base;
 
 field implementation => 'YAML::XS';
 

@@ -1,17 +1,17 @@
 use t::TestYAML 'no_plan'; # tests => 5;
 use t::YAMLFaker qw(YAML::Perl YAML::Old);
-use YAML2();
+use YAML();
 
-test_export('Y1', 'use YAML2', '11001');
-test_export('Y2', 'use YAML2-Old', '11001');
-test_export('Y3', "use YAML2 'LoadFile'", '00010');
-test_export('Y4', "use YAML2-Old, 'LoadFile'", '00010');
-test_export('A1', 'use YAML2::Any', '11000');
-# test_export('A2', 'use YAML2::Any-Old', '11001');
-test_export('A3', "use YAML2::Any 'LoadFile'", '00010');
+test_export('Y1', 'use YAML', '11001');
+test_export('Y2', 'use YAML-Old', '11001');
+test_export('Y3', "use YAML 'LoadFile'", '00010');
+test_export('Y4', "use YAML-Old, 'LoadFile'", '00010');
+test_export('A1', 'use YAML::Any', '11000');
+# test_export('A2', 'use YAML::Any-Old', '11001');
+test_export('A3', "use YAML::Any 'LoadFile'", '00010');
 
-test_export('YAML2', 'YAML2 already has ', '11111');
-YAML2::Dump(42);
+test_export('YAML', 'YAML already has ', '11111');
+YAML::Dump(42);
 no warnings 'once';
     is $YAML::Perl::last_called, 'Dump', 'Called the right YAML::Dump';
 
@@ -28,14 +28,14 @@ __END__
 
 
 # package A4;
-# use YAML2 'LoadFile';
+# use YAML 'LoadFile';
 # 
 # package A5;
-# eval "use YAML2::Any 'yaml'";
+# eval "use YAML::Any 'yaml'";
 # $A5::Error = $@;
 # 
 # package A6;
-# use YAML2::Any -XS, -Old;
+# use YAML::Any -XS, -Old;
 
 
 # use YAML;

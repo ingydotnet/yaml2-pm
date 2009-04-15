@@ -1,16 +1,16 @@
-package YAML2;
+package YAML;
 
 use 5.005003;
 use strict;
 use warnings;           # XXX remove this for 5.005003
-use YAML2::Base -base;
+use YAML::Base -base;
 
-$YAML2::VERSION = '0.01';
-@YAML2::EXPORT = qw(yaml Dump Load);
-@YAML2::EXPORT_OK = qw(DumpFile LoadFile freeze thaw);
+$YAML::VERSION = '0.01';
+@YAML::EXPORT = qw(yaml Dump Load);
+@YAML::EXPORT_OK = qw(DumpFile LoadFile freeze thaw);
 
-$YAML2::_package_to_implementation = {};
-$YAML2::_implementation_list = [qw(
+$YAML::_package_to_implementation = {};
+$YAML::_implementation_list = [qw(
     YAML::XS
     YAML::Perl
     YAML::Syck
@@ -55,8 +55,8 @@ sub get_binding {
 
 sub new_binding_object {
     my $self = shift;
-    require YAML2::Bind::Perl;
-    return YAML2::Bind::Perl->new();
+    require YAML::Bind::Perl;
+    return YAML::Bind::Perl->new();
 }
 
 {
@@ -91,8 +91,8 @@ sub parse {
 
 sub _get_binding {
     my $package = shift;
-    my $implementation = $YAML2::_package_to_implementation->{$package}
-      or croak "No YAML2 implmentation module found for package '$package'. Maybe you forgot to 'use YAML2' in that package.";
+    my $implementation = $YAML::_package_to_implementation->{$package}
+      or croak "No YAML implmentation module found for package '$package'. Maybe you forgot to 'use YAML' in that package.";
     return $implementation->new;
 }
 
@@ -106,7 +106,7 @@ sub grep_implemntation_list {
         $suffix =~ s/-/::/g;
         push @$implementations, "YAML$suffix";
     }
-    @$implementations = $YAML2::_implementation_list
+    @$implementations = $YAML::_implementation_list
         unless @$implementations;
 
     return ($implementations, @_);
@@ -139,7 +139,7 @@ sub generate_exportable_subroutines {
 
 =head1 NAME
 
-YAML2 - YAML Ain't Markup Language
+YAML - YAML Ain't Markup Language
 
 =head1 WARNING
 
@@ -147,31 +147,31 @@ This is a very early version, and should simply not be used.
 
 =head1 NOTE
 
-The module "YAML2" is intended to soon become the new YAML.pm. It is a
+The module "YAML" is intended to soon become the new YAML.pm. It is a
 frontend API module that does no real work on its own, but instead
 loads the YAML module you want to use. I'm releasing it to CPAN, so
 people can start playing with the new API but not upset their
 production/important code.
 
-When YAML2 becomes YAML, the classic YAML.pm will be renamed to
+When YAML becomes YAML, the classic YAML.pm will be renamed to
 YAML::Old. You can get the exact same behavior with:
 
     use YAML-Old;
 
 for now, you can try:
 
-    use YAML2-Old;
+    use YAML-Old;
 
-If you use YAML2 now, when it becomes YAML.pm the only thing you will
-need to do is change 'YAML2' to 'YAML' in the 'use YAML' line of your
+If you use YAML now, when it becomes YAML.pm the only thing you will
+need to do is change 'YAML' to 'YAML' in the 'use YAML' line of your
 code. In other words, when I make the "switch", all I will do is
-C<s/YAML2/YAML/g> and remove this NOTE section from the documentation.
+C<s/YAML/YAML/g> and remove this NOTE section from the documentation.
 
 =head1 SYNOPSIS
 
-    use YAML2;              # Use the best YAML implementation available
-    use YAML2-XS;           # Use only YAML::XS, but with standard YAML2 API
-    use YAML2-XS,-Perl;     # Use either YAML::XS or YAML::Perl
+    use YAML;              # Use the best YAML implementation available
+    use YAML-XS;           # Use only YAML::XS, but with standard YAML API
+    use YAML-XS,-Perl;     # Use either YAML::XS or YAML::Perl
 
     my $y = yaml;           # Create a new YAML object. Same as:
     my $y = YAML->new->implementation('YAML::XS');
@@ -189,7 +189,7 @@ C<s/YAML2/YAML/g> and remove this NOTE section from the documentation.
 
 =head1 DESCRIPTION
 
-YAML2.pm is the front end module API module for all of the various
+YAML.pm is the front end module API module for all of the various
 backend YAML implementation modules. The current YAML implementation
 modules are:
 
@@ -200,18 +200,18 @@ modules are:
     - YAML::Tiny - Adam's Tiny subset of YAML module
 
 All of these implementation modules use the familiar Dump/Load API.
-YAML2 continues to support this simple API, but also exposes newer, more
+YAML continues to support this simple API, but also exposes newer, more
 powerful APIs. Note that not all of the API options can be used with
-every implementation module. YAML2 will attempt to let you know when you
+every implementation module. YAML will attempt to let you know when you
 are doing something that is not supported.
 
-When you C<use> YAML2, you can let it choose an appropriate YAML
-implementation, or you can specify which one(s) should be used. YAML2
+When you C<use> YAML, you can let it choose an appropriate YAML
+implementation, or you can specify which one(s) should be used. YAML
 will load the appropriate implemenation module or it will die with the
 appropriate error msg.
 
-    use YAML2-XS;       # Use only the YAML::XS implementation
-    use YAML2-XS,-Perl; # Use either YAML::XS implementation
+    use YAML-XS;       # Use only the YAML::XS implementation
+    use YAML-XS,-Perl; # Use either YAML::XS implementation
     use YAML;           # Same as:
     use YAML-XS,-Perl,-Syck,-Old,-Tiny;
 
@@ -246,7 +246,7 @@ __END__
 #             return;
 #         }
 #     }
-#     my $msg = "Failed to load YAML2 implementation module. Could not find a binding module for" .
+#     my $msg = "Failed to load YAML implementation module. Could not find a binding module for" .
 #         ((@$implementations > 1) ? " one of: " : ": ") .
 #         join ', ', @$implementations;
 #     croak($msg)
@@ -256,11 +256,11 @@ __END__
 
 #     my $implementation = shift;
 #     my $binding = $implementation;
-#     $binding =~ s/^YAML::(.*)$/YAML2::Bind::$1/
-#         or die "Error loading YAML2 binding module for '$implementation'";
-#     eval "use $binding; \$YAML2::_package_to_implementation->{$package} = '$implementation'";
+#     $binding =~ s/^YAML::(.*)$/YAML::Bind::$1/
+#         or die "Error loading YAML binding module for '$implementation'";
+#     eval "use $binding; \$YAML::_package_to_implementation->{$package} = '$implementation'";
 #     return 0 if $@;
-#     $YAML2::_package_to_implementation->{$use_package} = $binding;
+#     $YAML::_package_to_implementation->{$use_package} = $binding;
 #     return 1;
 
 use YAML;

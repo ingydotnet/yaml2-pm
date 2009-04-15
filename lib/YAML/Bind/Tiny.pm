@@ -1,6 +1,6 @@
-package YAML2::Bind::Tiny;
+package YAML::Bind::Tiny;
 use strict;
-use YAML2::Bind -base;
+use YAML::Bind -base;
 
 field implementation => 'YAML::Tiny';
 

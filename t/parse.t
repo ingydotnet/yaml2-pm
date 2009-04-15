@@ -6,7 +6,7 @@ plan((eval {require YAML::Perl; 1})
     : (skip_all => "requires YAML::Perl")
 );
 
-use YAML2-Perl;
+use YAML-Perl;
 
 my $yaml = "aaa: 42\n";
 my @wants = map { chomp; $_ } <DATA>;

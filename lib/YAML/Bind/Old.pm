@@ -1,6 +1,6 @@
-package YAML2::Bind::Old;
+package YAML::Bind::Old;
 use strict;
-use YAML2::Bind -base;
+use YAML::Bind -base;
 
 field implementation => 'YAML::Old';
 
