@@ -1,4 +1,5 @@
-package YAML;
+package # hide from pause
+YAML;
 
 use 5.005003;
 use strict;

@@ -1,4 +1,4 @@
-use lib '../YAML-Perl/lib';
+use lib '../yaml-perl-pm/lib';
 use t::TestYAML;
 
 plan((eval {require YAML::Perl; 1})
