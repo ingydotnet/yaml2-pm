@@ -1,5 +1,7 @@
 package YAML2;
 
+$YAML2::VERSION = '0.01';
+
 die <<'...';
 
 Don't 'use YAML2;'.
@@ -21,13 +23,29 @@ YAML2 - The New, Experimental YAML.pm
 
 =head1 SYNOPSIS
 
-    use YAML-Perl;
+Do not C<use YAML2;>
+
+C<YAML2> is the module distribution name for the new, improved C<YAML>
+module.
+
+Therefore:
+
+    use YAML;
 
     yaml->emit(yaml->parse($yaml));
+
 
 =head1 WARNING
 
 DO NOT INSTALL YAML2 IN PRODUCTION ENVIRONMENTS!!!
+
+C<YAML2> is the temporary distribution name for the new YAML.pm.
+Installing this distribution will replace your YAML.pm module with
+this new one.
+
+You SHOULD do this if you want to play with the new YAML module.
+
+You SHOULD NOT do this in an environment that critically depends on YAML.pm.
 
 =head1 DESCRIPTION
 
@@ -38,6 +56,7 @@ There are many YAML implementations available.
   - YAML::Syck - The old C/XS YAML module
   - YAML::XS - The new and best C/XS YAML 
   - YAML::Perl - The new and most complete pure Perl YAML module
+  - YAML::Tiny - A tiny and incomplete subset of YAML
 
 Since YAML.pm has been moved to YAML::Old, the plan is to make YAML.pm into an
 interface only module. So you always use YAML, but YAML loads the
@@ -115,5 +134,17 @@ use it as the implementation by default.
 
 =back
 
+=head1 AUTHOR
 
+Ingy döt Net <ingy@cpan.org>
 
+=head1 COPYRIGHT
+
+Copyright (c) 2008, 2009. Ingy döt Net.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+See http://www.perl.com/perl/misc/Artistic.html
+
+=cut

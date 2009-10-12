@@ -6,7 +6,8 @@ use strict;
 use warnings;           # XXX remove this for 5.005003
 use YAML::Base -base;
 
-$YAML::VERSION = '0.01';
+$YAML::VERSION = '0.01';  # !!! Keep $YAML2::VERSION in sync.
+
 @YAML::EXPORT = qw(yaml Dump Load);
 @YAML::EXPORT_OK = qw(DumpFile LoadFile freeze thaw);
 
@@ -138,6 +139,8 @@ sub generate_exportable_subroutines {
 
 1;
 
+=encoding utf-8
+
 =head1 NAME
 
 YAML - YAML Ain't Markup Language
@@ -212,8 +215,10 @@ will load the appropriate implemenation module or it will die with the
 appropriate error msg.
 
     use YAML-XS;       # Use only the YAML::XS implementation
-    use YAML-XS,-Perl; # Use either YAML::XS implementation
-    use YAML;           # Same as:
+    use YAML-XS,-Perl; # Use either YAML::XS or YAML::Perl implementation
+    use YAML-Best;     # Same as above
+
+    use YAML-Any;      # Same as:
     use YAML-XS,-Perl,-Syck,-Old,-Tiny;
 
 =head1 EXPORT BEHAVIOR
@@ -226,7 +231,7 @@ Ingy döt Net <ingy@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2008. Ingy döt Net.
+Copyright (c) 2008, 2009. Ingy döt Net.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
